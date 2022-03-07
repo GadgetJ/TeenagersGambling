@@ -1,1 +1,2 @@
-# TeenagersGambling
+# Teenagers Gambling
+Created a basic report on analysis of Gambling Among Teenagers in Britain using r markdown. The dataset contained Spending habits of teenagers in gambling was investigated with a study of 47 participants. The study had 28 males and 19 females, aged between 16-19 and living in Britain. The data looked at expenditure (in GBP) over one year for both sexes. The purpose of this report is to look at a data file, gambling.csv, which contains the data on the aforementioned study. The file has two variables: sex (Female, Male) and money spent (GBP). This report will use exploratory plots and a linear model to explore the relationship between gambling expenditure and sex.
