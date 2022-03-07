@@ -1,0 +1,159 @@
+title: "Data Analysis Class Test 1 (2022)"
+author: "2230311J"
+output:
+  html_document:
+    df_print: paged
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: yes
+fig_caption: yes
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, comment = NA, message = FALSE)
+```
+
+```{r, eval = TRUE, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(moderndive)
+library(skimr)
+library(kableExtra)
+library(gridExtra)
+library(MASS)
+library(readr)
+library(tidyr)
+```
+
+<!-- Update the title of the report and the author of the document appropriately -->
+
+# Analysis of Gambling Among Teenagers in Britain
+
+<!-- Read in the .csv file for the report section. -->
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+Data <- read.csv("gambling.csv")
+```
+
+## Introduction {#sec:intro}
+Spending habits of teenagers in gambling was investigated with a study of 47 participants. The study had 28 males and 19 females, aged between 16-19 and living in Britain. The data looked at expenditure (in GBP) over one year for both sexes.
+\newline
+The purpose of this report is to look at a data file, gambling.csv, which contains the data on the aforementioned study. The file has two variables: sex (Female, Male) and money spent (GBP).  This report will use exploratory plots and a linear model to explore the relationship between gambling expenditure and sex.
+
+## Exploratory Analysis {#sec:EA}
+Here are the intial impressions on sex and expenditure which have been presented via table of summary statistics and a boxplot.
+
+
+Gender  | Variable | Mean   | SD | Minimum | 1st quartile | Median | 3rd quartile | Maximum
+:------:|:--------:|:------:|:----:|:-----:|:------------:|:------:|:--------:|---------:
+Female  |Spent     |  3.866 | 5.15073     |   0.000      |  0.100    | 1.700       |  6.000    |19.600
+Male    |Spent     |  29.755|  37.32418    |     0.000    |    2.775 |   14.250     |  42.175    |156.000
+
+    Table 1: Summary Statistics on Money Spent by Sex
+
+By looking at Table 1 it can be seen that males have a mean of 29.755 and a standard deviation of 37.32418 compared to females having a mean of 3.866 and standard deviation of 5.15073. The maximum value for females is 19.6 which is much smaller than males which is 156. This implies that males have a higher amount of spending on gambling than females.
+
+```{r, eval = TRUE, warning = FALSE, fig.align = "center",message = FALSE, fig.cap="\\label{fig:boxplot} Figure 1: Boxplot of Sex and Money Spent"}
+
+female <- Data %>%
+  filter(sex == "Female")
+
+male <- Data %>%
+  filter(sex == "Male")
+
+
+ggplot(data=Data, mapping = aes(x= sex, y=spent))+
+  geom_boxplot()+
+  labs(x="Sex", y="Money Spent(GBP)", title="Boxplot of Sex and Money Spent")
+
+```
+This boxplot reinforces the findings from Table 1, highlighting that the male expenditure has a larger mean with a larger variance in comparison to females' expenditure mean and variance. 
+
+## Formal Analysis {#sec:FA}
+
+The equation for the linear model for these data is as follows:
+
+$$\widehat{\mbox{Spent}} = \widehat{\alpha} + \widehat{\beta}_{\mbox{Male}} \cdot \mathbb{I}_{\mbox{Male}}(x) $$
+where
+
+  * the intercept $\widehat{\alpha}$ is the mean spent for the baseline category (females);
+  * $\widehat{\beta}_{\mbox{Male}}$ is the difference in the mean spent of males relative to the baseline category (females); and
+  * $\mathbb{I}_{\mbox{Male}}(x)$ is an indicator function such that
+
+    $$\mathbb{I}_{\mbox{Male}}(x)=\left\{
+                \begin{array}{ll}
+                  1 ~~~ \mbox{if the gender of} ~ x \mbox{th observation is Male},\\
+                  0 ~~~ \mbox{Otherwise}.\\
+                \end{array}
+              \right.$$
+
+\begin{flushright}2 MARKS\end{flushright}
+
+
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+Model <- lm(spent~sex, data=Data)
+
+
+
+
+# plot check assumptions
+regression.points <- get_regression_points(Model)
+
+
+```
+
+Term  | Estimate   
+:------:|:--------: 
+Intercept  |    3.866      
+GenderMale |   25.909     
+
+    Table 2. Estimates of the intercept and slope from the fitted linear regression model.
+
+Table 2 tells us that, compared to females, males spend 26 GBP more.
+
+```{r, eval = TRUE, fig.width = 13, fig.align = "center", warning = FALSE, fig.cap = "\\label{fig:resids} Figure 2: Scatterplot of the Residuals by Sex (left) and a Histogram of the Residuals (right).", fig.pos = 'H', message = FALSE}
+point <- ggplot(regression.points, aes(x = sex, y = residual)) +
+      geom_jitter(width = 0.1) + 
+      labs(x = "Sex", y = "Residual") +
+      geom_hline(yintercept = 0, col = "blue")
+
+histo <- ggplot(regression.points, aes(x = residual)) +
+      geom_histogram(color = "white") +
+      labs(x = "Residual") 
+
+grid.arrange(point, histo, ncol = 2)
+```
+Reviewing the scatterplot of residuals by sex, there is roughly an equal number of points above and below the zero line for female expenditure which highlights that the model fits well for females. Male expenditure has more points below the zero line and the points cluster together compared to above the line. This suggests that this model does not fit as well for male expenditure which could be do with the outlier on the male data.
+
+The histogram is for both male and female expenditure, and doesn't seem to follow a bell shape curve, which is a sign that the assumption of the errors following a normal distribution may not be satisfied.
+
+## Conclusions {#sec:con}
+This report looked at expenditure on gambling for male and female teenagers living in Britain, by looking at sex against money spent.
+By comparing boxplots (Figure 1) by sex, we can see that males have a higher expenditure than females with a greater mean and standard deviation. The linear model for predicting expenditure is given by:
+
+
+$$\widehat{\mbox{Spent}} = 3.866 + 25.909 \cdot \mathbb{I}_{\mbox{Male}}(x) $$
+
+ The model fits well for females but not so much for males. This could be due to the female standard deviation being smaller than males and female spending being far more consistent.
+
+A larger study with a more balanced proportion of males and females, could reveal more insights.
+
+# Further Question 1
+
+<!-- Read in the .csv file for Further Question 1. -->
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+F1 <- read_csv("FQ1.csv")
+```
+
+
+Part 1a)
+
+
+```{r, eval = TRUE, warning = FALSE, fig.align = "center",message = FALSE, fig.cap="\\label{fig:boxplot} Figure 3: Scatterplot of X and Y"}
+
+ggplot(F1, aes(x=X, y=Y)) + geom_point()+  geom_smooth(method=lm, se=FALSE)
+  
+```
+The above scattered plot shows that there is a postive moderately strong linear trend between X and Y varaibles.
